@@ -21,6 +21,7 @@ export class OverlaySyncController {
 	private element: HTMLElement;
 	private options: Required<OverlaySyncOptions>;
 	private lastRect: Rect = { x: 0, y: 0, width: 0, height: 0 };
+	private lastMasksJson = "[]";
 	private resizeObserver: ResizeObserver | null = null;
 	private positionLoop: ReturnType<typeof setTimeout> | null = null;
 	private resizeHandler: (() => void) | null = null;
@@ -88,20 +89,31 @@ export class OverlaySyncController {
 			return;
 		}
 
-		if (
-			!force &&
-			newRect.x === this.lastRect.x &&
-			newRect.y === this.lastRect.y &&
-			newRect.width === this.lastRect.width &&
-			newRect.height === this.lastRect.height
-		) {
+		const rectChanged =
+			newRect.x !== this.lastRect.x ||
+			newRect.y !== this.lastRect.y ||
+			newRect.width !== this.lastRect.width ||
+			newRect.height !== this.lastRect.height;
+
+		// Always recompute masks — a host popup can appear or move while the
+		// webview is stationary, and we need to push the new mask list to the
+		// native side even when the webview's own rect is unchanged.
+		const masks = this.options.getMasks();
+		const masksJson = JSON.stringify(masks);
+		const masksChanged = masksJson !== this.lastMasksJson;
+
+		if (!force && !rectChanged && !masksChanged) {
 			return;
 		}
 
-		this.burstUntil = performance.now() + this.options.burstDurationMs;
+		// Only enter a burst-poll window when the webview itself moved; a
+		// mask-only change doesn't need the follow-up polling.
+		if (rectChanged) {
+			this.burstUntil = performance.now() + this.options.burstDurationMs;
+		}
 		this.lastRect = newRect;
+		this.lastMasksJson = masksJson;
 
-		const masks = this.options.getMasks();
-		this.options.onSync(newRect, JSON.stringify(masks));
+		this.options.onSync(newRect, masksJson);
 	}
 }
