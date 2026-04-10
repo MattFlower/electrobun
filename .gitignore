@@ -20,6 +20,7 @@ dist-*
 /package/src/cli/templates/embedded.ts
 /package/src/bun/preload/.generated
 *.tar.gz
+*.tgz
 settings.local.json
 
 # Bunny
