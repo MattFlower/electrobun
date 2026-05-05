@@ -4,14 +4,17 @@
 
 This repo is `MattFlower/electrobun`, a fork of `blackboardsh/electrobun`
 maintained for the **Tempest** macOS app (`~/tempest/workspaces/...`).
-The active branch is `auto-mask-overlays`. It carries three changes on
-top of upstream's `1.17.3-beta.11`:
+The fork's `main` branch mirrors upstream `main` exactly — all
+customizations live on `auto-mask-overlays`, which currently sits on
+top of upstream `v1.18.1` and carries two preload-only changes:
 
-1. `setWindowButtonPosition` API for macOS traffic lights (upstream
-   PR #294 by chrisdadev13, not yet merged).
-2. `auto-mask` attribute on `<electrobun-webview>` for automatic
-   masking of host overlays.
-3. A re-sync bugfix in `OverlaySyncController` (preload).
+1. `auto-mask` attribute on `<electrobun-webview>` for automatic
+   masking of host overlays over native browser panes.
+2. A re-sync bugfix in `OverlaySyncController` (preload).
+
+(Earlier versions of this fork also carried chrisdadev13's
+`setWindowButtonPosition` PR #294 patch, but that has since landed
+upstream and is no longer maintained as a fork patch.)
 
 Tempest doesn't consume this repo via npm. It pulls a self-contained
 tarball directly from a GitHub release on this fork. The release flow
