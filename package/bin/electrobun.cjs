@@ -95,10 +95,14 @@ async function ensureCliBinary() {
 
   console.log('Downloading electrobun CLI for your platform...');
 
-  // Get the package version to download the matching release
+  // Get the package version to download the matching release.
+  // Fork builds use a semver pre-release suffix (e.g. "1.18.1-tempest.3");
+  // upstream's release assets live at the base version ("v1.18.1"), so strip
+  // any "-suffix" before constructing the tag.
   const packageJson = require(join(electrobunDir, 'package.json'));
   const version = packageJson.version;
-  const tag = `v${version}`;
+  const upstreamVersion = version.split('-')[0];
+  const tag = `v${upstreamVersion}`;
 
   const tarballUrl = `https://github.com/blackboardsh/electrobun/releases/download/${tag}/electrobun-cli-${platform}-${arch}.tar.gz`;
   const tarballPath = join(cacheDir, `electrobun-${platform}-${arch}.tar.gz`);

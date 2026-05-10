@@ -29,6 +29,8 @@ shape of this fork.
 - You've added or changed a preload file (`package/src/bun/preload/**`).
 - You've changed anything under `package/src/bun/core/**` or
   `package/src/bun/proc/**` that Tempest imports at runtime.
+- You've changed `package/bin/electrobun.cjs` (the JS shim that runs
+  on `bun install` / first invocation and lazy-downloads the CLI).
 - You've rebased `auto-mask-overlays` onto a newer upstream main and
   want Tempest to consume that upstream version.
 - You've modified `package/src/native/macos/nativeWrapper.mm` (note:
@@ -36,7 +38,7 @@ shape of this fork.
 
 You do **not** need a new release for changes that only affect the CLI
 source, the Zig launcher, or fork-internal tooling — Tempest doesn't
-exercise those.
+exercise those (their output is downloaded from upstream's release).
 
 ## Cutting a release (preload-only patches, the common case)
 
@@ -272,12 +274,22 @@ just TypeScript source plus a JS shim CLI (`bin/electrobun.cjs`)
 that lazy-downloads the matching CLI + core binaries from
 `github.com/blackboardsh/electrobun/releases` on first invocation.
 
-The lazy-download flow above ships the fork the same way. The only
-fork-specific content in the tarball is the patched TypeScript in
-`dist/api/**` (preload patches baked in by `prepare-dist.ts`); the
-binaries it eventually runs come straight from upstream. This works
-because all current fork patches are preload-only — they live in TS,
-not in the CLI or native code.
+The lazy-download flow above ships the fork the same way. The
+fork-specific content in the tarball is:
+- patched TypeScript in `dist/api/**` (preload patches baked in by
+  `prepare-dist.ts`)
+- a small patch to `bin/electrobun.cjs` that strips the
+  `-tempest.N` semver suffix when constructing the upstream
+  download URL (otherwise the shim would 404 looking for an
+  upstream release tagged `v1.18.1-tempest.N`)
+
+The CLI binary itself is built by upstream with `bun build --compile`,
+which inlines `import { version } from "../../package.json"` at
+build time — so `ELECTROBUN_VERSION` is baked as `1.18.1` in the
+upstream binary, and `ensureCoreDependencies()` resolves to
+upstream's `electrobun-core-*` assets correctly without further
+patching. This works because none of the current fork patches touch
+the CLI's compiled source or native code.
 
 The bundling fallback in "With native changes" exists because
 lazy-download can't deliver patched binaries: it would always pull
