@@ -56,7 +56,7 @@ platform-neutral.
 
 1. **Pick a version.** Use `<upstream-version>-tempest.<N>`, e.g. if
    the branch sits on upstream `v1.18.1`, the next release is
-   `1.18.1-tempest.3`.
+   `1.18.1-tempest.N` (the next unused integer in the series).
 
 2. **Update `package/package.json` version field** to match.
 
@@ -88,7 +88,7 @@ platform-neutral.
 
 6. **Commit the version bump:**
    ```
-   git add package.json
+   git add package/package.json
    git commit -m "chore: bump fork to <UPSTREAM>-tempest.N"
    ```
 
